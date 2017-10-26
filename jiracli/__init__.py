@@ -175,7 +175,8 @@ def issue_format(jira_obj, issue, show_desc=False, show_comments=False,
     conf = config_get(user_config_path)
     if hasattr(issue.fields, conf.get('defaults', 'customfield_key_1')):
         try:
-            test = issue.fields.customfield_10340[0]
+            # Because there can be many sprint labels, but I want the latest one
+            test = issue.fields.customfield_10340[-1]
             import re
             result = re.findall(r"name=(.*),startDate",test)
             fields['sprint'] = "%s" % (result[0])
