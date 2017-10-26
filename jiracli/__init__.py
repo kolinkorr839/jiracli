@@ -171,6 +171,17 @@ def issue_format(jira_obj, issue, show_desc=False, show_comments=False,
                                              issue.fields.components))
     if hasattr(issue.fields, 'labels') and len(issue.fields.labels) > 0:
         fields['labels'] = ", ".join(map(lambda x: x, issue.fields.labels))
+
+    conf = config_get(user_config_path)
+    if hasattr(issue.fields, conf.get('defaults', 'customfield_key_1')):
+        try:
+            test = issue.fields.customfield_10340[0]
+            import re
+            result = re.findall(r"name=(.*),startDate",test)
+            fields['sprint'] = "%s" % (result[0])
+        except:
+            fields['sprint'] = 'NULL'
+
     if hasattr(issue.fields, 'attachment') and \
        len(issue.fields.attachment) > 0:
         fields['attachment'] = ", ".join(map(lambda x: x.filename,
@@ -354,6 +365,11 @@ def parse_args():
                              metavar=('issue', 'label'),
                              help='Remove a label from the given issue')
 
+    # sprint
+    group_issue.add_argument("--issue-sprint-add", nargs=1,
+                             metavar=('issue'),
+                             help='Add a sprint id to the given issue')
+
     # components
     group_issue.add_argument("--issue-component-add", nargs=2,
                              metavar=('issue', 'component'),
@@ -467,6 +483,21 @@ def main():
                             args['issue_label_remove'][1].lower(),
                             issue.fields.labels)
         issue.update(fields={"labels": labels_new})
+        sys.exit(0)
+
+    # add a sprint to an issue
+    if args['issue_sprint_add']:
+        # import pdb; pdb.set_trace()
+        issue = jira_obj.issue(args['issue_sprint_add'][0])
+
+        # This is what I add it looks like customfield_10340 is always there
+        # But it is not a list, it is None
+        # If you manually execute this line, it will tell you that you need the Sprint id.
+        # This can be found if you view source an existing page which has a sprint id in it.
+        # Eg. sprintId=2389 -- sprint id is 2389
+
+        conf = config_get(user_config_path)
+        issue.update(fields={"customfield_10340": int(conf.get('defaults', 'customfield_val_1')) })
         sys.exit(0)
 
     # add component to an issue
