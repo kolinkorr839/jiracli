@@ -29,6 +29,7 @@ import tempfile
 
 from termcolor import colored as colorfunc
 from jira import JIRA
+import re
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import tabulate
@@ -177,7 +178,6 @@ def issue_format(jira_obj, issue, show_desc=False, show_comments=False,
         try:
             # Because there can be many sprint labels, but I want the latest one
             test = issue.fields.customfield_10340[-1]
-            import re
             result = re.findall(r"name=(.*),startDate",test)
             fields['sprint'] = "%s" % (result[0])
         except:
@@ -309,6 +309,9 @@ def parse_args():
                         help='list favourite filters')
     parser.add_argument("--no-color", action='store_true',
                         help='disable colorful output (default: %(default)s)')
+    parser.add_argument("--issue-sprintid-get", action='store_true',
+                        help='Get the sprint id')
+
     group_issue = parser.add_argument_group('issue')
     # create
     group_issue.add_argument('-c', '--issue-create', nargs=5,
@@ -499,6 +502,24 @@ def main():
 
         conf = config_get(user_config_path)
         issue.update(fields={"customfield_10340": int(conf.get('defaults', 'customfield_val_1')) })
+        sys.exit(0)
+
+    # get the sprint id
+    if args['issue_sprintid_get']:
+        conf = config_get(user_config_path)
+        current_sprint_id = int(conf.get('defaults', 'customfield_val_1'))
+        for i in range(0, 50):
+            i = current_sprint_id + i
+            try:
+                temp_ids = jira_obj.sprint_info(1, i)
+                if ( temp_ids['state'] == u'ACTIVE' and
+                    "Ops" in temp_ids['name'] ):
+                    print( "%s: %s = %s - %s"
+                        % (temp_ids['id'], temp_ids['name'],
+                        temp_ids['startDate'], temp_ids['endDate'] ))
+            except:
+                pass
+
         sys.exit(0)
 
     # add component to an issue
