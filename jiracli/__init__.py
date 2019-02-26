@@ -369,10 +369,16 @@ def parse_args():
                              metavar=('issue', 'label'),
                              help='Remove a label from the given issue')
 
-    # sprint
-    group_issue.add_argument("--issue-sprint-add", nargs=1,
+    # sprint for embed, insight, infrastructure
+    group_issue.add_argument("--issue-sprint-add-embed", nargs=1,
                              metavar=('issue'),
-                             help='Add a sprint id to the given issue')
+                             help='Add a sprint id to the given issue for embed')
+    group_issue.add_argument("--issue-sprint-add-insight", nargs=1,
+                             metavar=('issue'),
+                             help='Add a sprint id to the given issue for insight')
+    group_issue.add_argument("--issue-sprint-add-infrastructure", nargs=1,
+                             metavar=('issue'),
+                             help='Add a sprint id to the given issue for infrastructure')
 
     # components
     group_issue.add_argument("--issue-component-add", nargs=2,
@@ -490,9 +496,9 @@ def main():
         sys.exit(0)
 
     # add a sprint to an issue
-    if args['issue_sprint_add']:
+    if args['issue_sprint_add_embed']:
         # import pdb; pdb.set_trace()
-        issue = jira_obj.issue(args['issue_sprint_add'][0])
+        issue = jira_obj.issue(args['issue_sprint_add_embed'][0])
 
         # This is what I add it looks like customfield_10340 is always there
         # But it is not a list, it is None
@@ -501,7 +507,35 @@ def main():
         # Eg. sprintId=2389 -- sprint id is 2389
 
         conf = config_get(user_config_path)
-        issue.update(fields={"customfield_10340": int(conf.get('defaults', 'customfield_val_1')) })
+        issue.update(fields={"customfield_10340": int(conf.get('embed', 'customfield_val_1')) })
+        sys.exit(0)
+
+    if args['issue_sprint_add_insight']:
+        # import pdb; pdb.set_trace()
+        issue = jira_obj.issue(args['issue_sprint_add_insight'][0])
+
+        # This is what I add it looks like customfield_10340 is always there
+        # But it is not a list, it is None
+        # If you manually execute this line, it will tell you that you need the Sprint id.
+        # This can be found if you view source an existing page which has a sprint id in it.
+        # Eg. sprintId=2389 -- sprint id is 2389
+
+        conf = config_get(user_config_path)
+        issue.update(fields={"customfield_10340": int(conf.get('insight', 'customfield_val_1')) })
+        sys.exit(0)
+
+    if args['issue_sprint_add_infrastructure']:
+        # import pdb; pdb.set_trace()
+        issue = jira_obj.issue(args['issue_sprint_add_infrastructure'][0])
+
+        # This is what I add it looks like customfield_10340 is always there
+        # But it is not a list, it is None
+        # If you manually execute this line, it will tell you that you need the Sprint id.
+        # This can be found if you view source an existing page which has a sprint id in it.
+        # Eg. sprintId=2389 -- sprint id is 2389
+
+        conf = config_get(user_config_path)
+        issue.update(fields={"customfield_10340": int(conf.get('infrastructure', 'customfield_val_1')) })
         sys.exit(0)
 
     # get the sprint id
